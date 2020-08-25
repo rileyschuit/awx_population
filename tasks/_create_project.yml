@@ -1,0 +1,80 @@
+---
+- name: Add Project with cache timeout and custom virtualenv
+  tower_project:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(omit)}}"
+    organization: "{{ item.organization }}"
+    scm_update_on_launch: "{{ item.scm_update_on_launch | default(False)}}"
+    scm_update_cache_timeout: "{{ item.scm_update_cache_timeout | default(60)}}"
+    scm_type: "{{ item.scm_type | default('manual') }}"
+    scm_url: "{{ item.scm_url }}"
+    scm_branch: master
+    scm_credential:
+    state: "{{ item.state | default('present')}}"
+    tower_verify_ssl: False
+  with_items: "{{ awx_projects }}"
+  when: item.scm_type == "git"
+  register: project_creation
+
+- name: Create struct to reference project to credential
+  set_fact:
+    project_to_cred: |
+      [
+        {% for project in project_creation.results %}
+          {% for credential in credential_creation.results %}
+            {% if credential.item.name == project.item.scm_credential %}
+            {
+              'project_id': {{ project.id }},
+              'project_name': '{{ project.project }}',
+              'credential_id': {{ credential.id }},
+              'scm_type': '{{ project.item.scm_type }}',
+              'scm_url': '{{ project.item.scm_url }}',
+              'scm_branch': '{{ project.item.scm_branch }}'
+            },
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      ]
+
+- name: Add Credential to Project
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/projects/{{ item.project_id }}/"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "204,200"
+    body_format: json
+    method: PUT
+    validate_certs: False
+    body: |
+      {
+        'name': '{{ item.project_name }}',
+        'credential': '{{ item.credential_id }}',
+        'scm_url': '{{ item.scm_url }}',
+        'scm_type': '{{ item.scm_type }}',
+        'scm_branch': '{{ item.scm_branch }}'
+      }
+  delegate_to: localhost
+  register: place_cred_into_project
+  with_items: "{{ project_to_cred }}"
+
+  # After adding a project, it will fail every time.  I suspect it's because there
+  # is no cred attached.  So run a refresh:
+
+- name: Add Credential to Project
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/projects/{{ item.project_id }}/update/"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "202"
+    body_format: json
+    method: POST
+    validate_certs: False
+    body: |
+      { "extra_vars": {}}
+  delegate_to: localhost
+  register: place_cred_into_project
+  with_items: "{{ project_to_cred }}"

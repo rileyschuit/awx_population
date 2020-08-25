@@ -1,0 +1,45 @@
+---
+language: python
+python: "2.7"
+
+env:
+  ansible:
+    - ANSIBLE_VERSION=latest
+    # - ANSIBLE_VERSION=2.8.8
+  centos:
+    - OS_TYPE=centos OS_VERSION=6
+    - OS_TYPE=centos OS_VERSION=7
+
+# Use the new container infrastructure
+sudo: false
+
+# Install ansible
+addons:
+  apt:
+    packages:
+    - python-pip
+    - ansible_tower_cli
+
+before_install:
+  - sudo apt-get update -qq
+
+install:
+  # Install ansible
+  - pip install ansible==$ANSIBLE_VERSION
+
+  # Check ansible version
+  - ansible --version
+
+  # Create ansible.cfg with correct roles_path
+  - printf '[defaults]\nroles_path=../' >ansible.cfg
+
+script:
+  # Install AWX locally
+  - ansible-playbook -i tests/inventory.yml installer/install.yml -e @vars.yml
+  # Basic role syntax check
+  - ansible-playbook tests/test.yml -i tests/inventory.yml --syntax-check
+  # Run playbook to populate awx
+  - ansible-playbook tests/test.yml -i tests/inventory.yml
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/

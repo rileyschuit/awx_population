@@ -1,0 +1,8 @@
+---
+- name: Create Organizations
+  tower_organization:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(omit) }}"
+    state: "{{ item.state | default('present')}}"
+    validate_certs: False
+  with_items: "{{ awx_organizations }}"

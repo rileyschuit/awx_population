@@ -1,0 +1,25 @@
+---
+
+- name: Include playbook to create organizations
+  import_tasks: _create_organizations.yml
+  when: awx_organizations is defined
+
+# Reminder: This is normally vaulted due to requirments of setting up a CM for pulling changes
+- name: Include playbook to create credentials
+  import_tasks: _create_credential.yml
+
+- name: Include playbook to create projects
+  import_tasks: _create_project.yml
+
+- name: Include playbook to create inventory
+  import_tasks: _create_inventory.yml
+
+- name: Include playbook to create templates
+  import_tasks: _create_template.yml
+
+# TODO:
+# - name: Include playbook to create workflows
+#   import_tasks: _create_workflow.yml
+
+- name: Include playbook to schedule templates
+  import_tasks: _create_schedule.yml

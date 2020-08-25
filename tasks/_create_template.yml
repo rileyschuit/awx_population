@@ -1,0 +1,73 @@
+---
+- name: Create templates
+  tower_job_template:
+    name: "{{ item.name }}"
+    job_type: "{{ item.job_type | default('run')}}"
+    inventory: "{{ item.inventory }}"
+    ask_limit: "{{ item.ask_limit | default(True) }}"
+    project: "{{ item.project }}"
+    playbook: "{{ item.playbook }}"
+    # BUG: List of credentails is not accepted, workaround below
+    # credential: "{{ item.credentials }}"
+    state: "{{ item.state | default('present')}}"
+    survey_enabled: "{{ item.survey_enabled | default(False)}}"
+    survey_spec: "{{ item.survey_spec | default({})}}"
+  with_items: "{{ awx_templates }}"
+  register: create_template
+
+- name: debug
+  debug:
+    msg: "{{ create_template.results }}"
+    verbosity: 1
+
+- name: Create list for credentials to be populated in template
+  set_fact:
+    cred_to_template_reference: |
+          [
+            {% for template_detail in create_template.results %}
+              {% for cred in credential_creation.results %}
+                {% if cred.item.name in template_detail.item.credentials %}
+                  { 'template_id': '{{ template_detail.id }}',
+                    'cred_id': '{{ cred.id | int }}',
+                    {% if template_detail.item.schedule is defined %}
+                      'schedule': {{ template_detail.item.schedule }}
+                    {% endif %}
+                  },
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          ]
+
+    schedule_to_template: |
+          [
+            {% for template_detail in create_template.results %}
+              {% if template_detail.item.schedule is defined %}
+                {% for occurance in template_detail.item.schedule %}
+                  {
+                    "name": "{{ occurance.name }}",
+                    "template_id": "{{ template_detail.id }}",
+                    "occurance": "{{ occurance.occurance | upper | default('DAILY') }}",
+                    "time": "{{ occurance.time | default('0000') }}",
+                    "timezone": "{{ occurance.timezone | default('UTC') }}"
+                  },
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          ]
+
+# https://github.com/ansible/awx/issues/5171
+- name: Update credentials for jobs templates
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/job_templates/{{ item.template_id }}/credentials/"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "204,200,400" # IF it already exists, it will give an error about multiple machine credentials
+    body_format: json
+    method: POST
+    body: "{ 'id': {{ item.cred_id | int }} }"
+    validate_certs: False
+  delegate_to: localhost
+  run_once: true
+  with_items: "{{ cred_to_template_reference }}"

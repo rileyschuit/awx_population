@@ -1,0 +1,107 @@
+---
+- name: ADD INVENTORY
+  tower_inventory:
+    name: "{{ awx_inventory.name }}"
+    description: "{{ item.description | default(omit)}}"
+    organization: "{{ awx_inventory.organization }}"
+    state: present
+  register: inventory_creation
+
+# Even though, in our example we limit our inventory to awx, it then goes through
+# all the hosts in our inventory to add them
+- name: ADD HOSTS
+  tower_host:
+    name: "{{ item.value.inventory_hostname }}"
+    inventory: "{{ ansible_inventory }}"
+    tower_username: "{{ lookup('env','USER') }}"
+    tower_password: "{{ ansible_ssh_pass }}"
+    tower_host: https://{{ inventory_hostname }}
+    validate_certs: False
+  with_dict: "{{ hostvars }}"
+  register: adding_hosts
+
+- name: ADD GROUPS
+  tower_group:
+    name: "{{ item.key }}"
+    inventory: "{{ ansible_inventory }}"
+    instance_filters: "{{ item.value | join(',') | regex_replace(\"'\", '')}}"
+    tower_username: "{{ lookup('env','USER') }}"
+    tower_password: "{{ ansible_ssh_pass }}"
+    tower_host: https://{{ inventory_hostname }}
+    validate_certs: False
+  with_dict: "{{ groups }}"
+  run_once: True
+  when: item.key != "all"
+
+- name: Get hosts details - mostly only used for the name and id
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/inventories/{{ inventory_creation.id }}/hosts/?page_size=20&order_by=name"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "204,200"
+    body_format: json
+    method: GET
+    validate_certs: False
+  run_once: true
+  register: hosts_reference
+
+- name: Get groups details - mostly only used for the name and id
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/inventories/{{ inventory_creation.id }}/groups/?page_size=20&order_by=name"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "204,200"
+    body_format: json
+    method: GET
+    validate_certs: False
+  delegate_to: localhost
+  register: group_reference
+
+- name: Structure data to help with host to group creation
+  set_fact:
+    host_to_group_reference: >
+        [
+          {% for group_details in group_reference.json.results %}
+            {% for key, group_value in groups.items() %}
+              {% if group_details.name == key %}
+                {% for host in group_value %}
+                  {% for host_details in hosts_reference.json.results %}
+                    {% if host_details.name == host %}
+                    {
+                      "group_id": {{ group_details.id }},
+                      "group_name": "{{ group_details.name }}",
+                      "host_id": {{ host_details.id }},
+                      "host_name": "{{ host_details.name }}"
+                    },
+                    {% endif %}
+                  {% endfor %}
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        ]
+  delegate_to: localhost
+
+- name: debug host_to_group_reference
+  debug:
+    msg: "{{ host_to_group_reference }}"
+    verbosity: 1
+
+- name: Add hosts to groups
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/groups/{{ item.group_id }}/hosts/"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "204,200"
+    body_format: json
+    method: POST
+    body: '{ "id": {{ item.host_id | int }} }'
+    validate_certs: False
+  run_once: true
+  with_items: "{{ host_to_group_reference }}"

@@ -1,0 +1,19 @@
+---
+- name: Set Schedules
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v2/job_templates/{{ item.template_id }}/schedules/"
+    return_content: yes
+    user: "{{ lookup('env','USER') }}"
+    password: "{{ ansible_ssh_pass }}"
+    force_basic_auth: yes
+    status_code: "201,400" # IF it already exists, it will give an error about multiple machine credentials
+    body_format: json
+    body: {
+        name: "{{ item.name }}",
+        rrule: "DTSTART;TZID={{ item.timezone | default('UTC') }}:{{ hostvars['localhost'].ansible_date_time.year }}{{ hostvars['localhost'].ansible_date_time.month }}{{ hostvars['localhost'].ansible_date_time.day }}T{{ item.time }}00 RRULE:FREQ={{ item.occurance | default('DAILY')}};INTERVAL=1"
+      }
+    method: POST
+    validate_certs: False
+  delegate_to: localhost
+  run_once: True
+  with_items: "{{ schedule_to_template }}"

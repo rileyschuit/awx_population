@@ -1,14 +1,12 @@
 ---
 language: python
-python: "2.7"
+python: "3.8"
 
 env:
   ansible:
     - ANSIBLE_VERSION=latest
-    # - ANSIBLE_VERSION=2.8.8
-  centos:
-    - OS_TYPE=centos OS_VERSION=6
-    - OS_TYPE=centos OS_VERSION=7
+
+dist: xenial
 
 # Use the new container infrastructure
 sudo: false

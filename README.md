@@ -1,4 +1,4 @@
-awx_population
+awx_population  [![Build Status](https://travis-ci.org/rileyschuit/awx_population.svg?branch=master)](https://travis-ci.org/rileyschuit/awx_population)
 =========
 
 This gnarly role will create Organizations, Projects, Credentials, Templates, and Schedule for automated runs.

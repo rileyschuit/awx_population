@@ -16,14 +16,13 @@ addons:
   apt:
     packages:
     - python-pip
-    - ansible_tower_cli
 
 before_install:
   - sudo apt-get update -qq
 
 install:
   # Install ansible
-  - pip install ansible==$ANSIBLE_VERSION
+  - pip install ansible==$ANSIBLE_VERSION ansible_tower_cli
 
   # Check ansible version
   - ansible --version

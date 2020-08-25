@@ -3,8 +3,7 @@ language: python
 python: "3.8"
 
 env:
-  ansible:
-    - ANSIBLE_VERSION=latest
+  - ANSIBLE_VERSION=latest
 
 dist: xenial
 

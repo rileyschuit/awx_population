@@ -37,10 +37,10 @@ script:
   - ansible-playbook -i installer/inventory installer/install.yml
   # Basic role syntax check
   - cd ../
-  - ansible-playbook -i tests/inventory.yml tests/test.yml --syntax-check
+  - ansible-playbook --connection=local -i tests/inventory.yml tests/test.yml --syntax-check
   # TODO: This will fail because we need to set a tower user name ans password variable
   # Run playbook to populate awx
-  - ansible-playbook -i tests/inventory.yml tests/test.yml
+  - ansible-playbook --connection=local -i tests/inventory.yml tests/test.yml
 
 # notifications:
 #   webhooks: https://galaxy.ansible.com/api/v1/notifications/

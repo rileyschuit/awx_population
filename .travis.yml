@@ -4,6 +4,7 @@ python: "3.8"
 
 env:
   - ANSIBLE_VERSION=latest
+  - ANSIBLE_HOST_KEY_CHECKING=False
 
 dist: xenial
 
@@ -33,9 +34,9 @@ script:
   # Install AWX locally
   - ansible-playbook -i tests/inventory.yml installer/install.yml -e @vars.yml
   # Basic role syntax check
-  - ansible-playbook tests/test.yml -i tests/inventory.yml --syntax-check
+  - ansible-playbook -i tests/inventory.yml tests/test.yml --syntax-check
   # Run playbook to populate awx
-  - ansible-playbook tests/test.yml -i tests/inventory.yml
+  - ansible-playbook -i tests/inventory.yml tests/test.yml
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

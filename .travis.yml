@@ -14,7 +14,8 @@ sudo: false
 addons:
   apt:
     packages:
-    - python-pip
+      - python-pip
+      - docker-py
 
 before_install:
   - sudo apt-get update -qq

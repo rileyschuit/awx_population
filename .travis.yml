@@ -31,12 +31,14 @@ install:
 
 script:
   # Install AWX locally
-  - git clone --depth 1 https://github.com/ansible/awx.git /tmp/awx
-  - cd /tmp/awx && ansible-playbook -i installer/inventory.yml installer/install.yml -e @vars.yml
+  - git clone --depth 1 https://github.com/ansible/awx.git awx-tmp
+  - cd awx-tmp
+  - ansible-playbook -i installer/inventory.yml installer/install.yml -e @vars.yml
   # Basic role syntax check
+  - cd ../
   - ansible-playbook -i tests/inventory.yml tests/test.yml --syntax-check
   # Run playbook to populate awx
   - ansible-playbook -i tests/inventory.yml tests/test.yml
 
-notifications:
-  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+# notifications:
+#   webhooks: https://galaxy.ansible.com/api/v1/notifications/

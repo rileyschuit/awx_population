@@ -21,7 +21,7 @@ before_install:
 
 install:
   # Install ansible
-  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible ansible_tower_cli docker-py; else pip install ansible==$ANSIBLE_VERSION ansible_tower_cli docker-py; fi
+  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible ansible_tower_cli docker-py docker-compose; else pip install ansible==$ANSIBLE_VERSION ansible_tower_cli docker-py docker-compose; fi
 
   # Check ansible version
   - ansible --version

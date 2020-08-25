@@ -1,6 +1,8 @@
 ---
 - hosts: localhost
   remote_user: root
+  connection: local
+
   vars:
     awx_organizations:
       - name: "FOO INC"
@@ -19,7 +21,7 @@
         scm_update_cache_timeout": 120
         scm_type: "git"
         scm_url: "git@bitbucket.org:fooinc/radproject.git"
-        scm_credential: "SRV ENG Bitbucket"
+        scm_credential: "FOO BAR Bitbucket"
         scm_branch: "master"
 
     awx_inventory:
@@ -36,4 +38,13 @@
           - FOO BAR Vault
 
   roles:
-    - awx_population
+    - name: Install pip packages
+      pip:
+        name:
+          - ansible_tower_cli
+        state: present
+      delegate_to: localhost
+      run_once: True
+
+    - include_role:
+        name: awx_population

@@ -27,10 +27,10 @@
       organization: "FOO INC"
 
     awx_templates :
-      - name: "Test Template",
-        inventory: "FOOBAR Inventory",
-        project: "FOOBAR",
-        playbook: "playbooks/do_some_rad_stuff.yml",
+      - name: "Test Template"
+        inventory: "FOOBAR Inventory"
+        project: "FOOBAR"
+        playbook: "playbooks/do_some_rad_stuff.yml"
         credentials:
           - FOO BAR Root User
           - FOO BAR Vault

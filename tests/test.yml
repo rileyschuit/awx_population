@@ -20,7 +20,7 @@
         scm_update_on_launch: False
         scm_update_cache_timeout": 120
         scm_type: "git"
-        scm_url: "git@bitbucket.org:fooinc/radproject.git"
+        scm_url: "git@github.org:rileyschuit/radproject.git"
         scm_credential: "FOO BAR Bitbucket"
         scm_branch: "master"
 
@@ -37,7 +37,7 @@
           - FOO BAR Root User
           - FOO BAR Vault
 
-  roles:
+  tasks:
     - name: Install pip packages
       pip:
         name:

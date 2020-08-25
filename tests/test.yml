@@ -14,13 +14,13 @@
 
     awx_projects:
       - name: "FOOBAR"
-          organization: "FOO INC"
-          scm_update_on_launch: False
-          scm_update_cache_timeout": 120
-          scm_type: "git"
-          scm_url: "git@bitbucket.org:fooinc/radproject.git"
-          scm_credential: "SRV ENG Bitbucket"
-          scm_branch: "master"
+        organization: "FOO INC"
+        scm_update_on_launch: False
+        scm_update_cache_timeout": 120
+        scm_type: "git"
+        scm_url: "git@bitbucket.org:fooinc/radproject.git"
+        scm_credential: "SRV ENG Bitbucket"
+        scm_branch: "master"
 
     awx_inventory:
       name: "FOOBAR Inventory"

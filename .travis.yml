@@ -34,7 +34,7 @@ script:
   - git clone --depth 1 https://github.com/ansible/awx.git awx-tmp
   - cd awx-tmp
   # https://github.com/ansible/awx/blob/devel/INSTALL.md
-  - ansible-playbook -i installer/inventory.yml installer/install.yml
+  - ansible-playbook -i installer/inventory installer/install.yml
   # Basic role syntax check
   - cd ../
   - ansible-playbook -i tests/inventory.yml tests/test.yml --syntax-check

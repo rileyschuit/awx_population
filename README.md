@@ -44,17 +44,15 @@ awx_projects - List of objects for building projects
       "scm_update_cache_timeout": 120,
       "scm_type": "git",
       "scm_url": "git@bitbucket.org:fooinc/radproject.git",
-      "scm_credential":
-      "SRV ENG Bitbucket",
-      "scm_branch":
-      "master"
+      "scm_credential": "FOOBAR Bitbucket",
+      "scm_branch": "master"
     }
   ]
 ```
 
 awx_inventory - ONE object to create the inventory based on the inventory file you point to
 ```
-  "name": "SRV ENG Inventory", "organization": "FOO INC"
+  "name": "FOOBAR Inventory", "organization": "FOO INC"
 ```
 
 awx_templates - List of objects to assist with creating templates.  Listed credentials must be included
@@ -62,7 +60,7 @@ awx_templates - List of objects to assist with creating templates.  Listed crede
 ```
   [
     { "name": "Test Template",
-      "inventory": "SRV ENG Inventory",
+      "inventory": "FOOBAR Inventory",
       "project": "FOOBAR",
       "playbook": "playbooks/do_some_rad_stuff.yml",
       "credentials": [
